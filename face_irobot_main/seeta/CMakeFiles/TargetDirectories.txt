@@ -1,0 +1,3 @@
+/www/wwwroot/face/face_irobot_main/seeta/CMakeFiles/SeetaFaceAPI.dir
+/www/wwwroot/face/face_irobot_main/seeta/CMakeFiles/edit_cache.dir
+/www/wwwroot/face/face_irobot_main/seeta/CMakeFiles/rebuild_cache.dir

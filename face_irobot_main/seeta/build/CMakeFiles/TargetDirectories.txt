@@ -1,0 +1,3 @@
+/home/linaro/Desktop/seetaface6ToPy-main/seetaface/build/CMakeFiles/rebuild_cache.dir
+/home/linaro/Desktop/seetaface6ToPy-main/seetaface/build/CMakeFiles/SeetaFaceAPI.dir
+/home/linaro/Desktop/seetaface6ToPy-main/seetaface/build/CMakeFiles/edit_cache.dir
