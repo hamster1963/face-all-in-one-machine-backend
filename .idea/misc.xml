@@ -5,12 +5,24 @@
     <option name="openedFilesInfos">
       <list>
         <OpenedFileInfo>
-          <option name="caretOffset" value="0" />
-          <option name="fileUrl" value="file://$PROJECT_DIR$/FACE_BACKEND/settings.py" />
+          <option name="caretOffset" value="4088" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/face_machine_client/views.py" />
         </OpenedFileInfo>
         <OpenedFileInfo>
-          <option name="caretOffset" value="0" />
+          <option name="caretOffset" value="4694" />
           <option name="fileUrl" value="file://$PROJECT_DIR$/face_machine_client/consumers.py" />
+        </OpenedFileInfo>
+        <OpenedFileInfo>
+          <option name="caretOffset" value="4694" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/face_machine_client/consumers.py" />
+        </OpenedFileInfo>
+        <OpenedFileInfo>
+          <option name="caretOffset" value="409" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/face_machine_client/models.py" />
+        </OpenedFileInfo>
+        <OpenedFileInfo>
+          <option name="caretOffset" value="595" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/face_irobot_main/models.py" />
         </OpenedFileInfo>
       </list>
     </option>

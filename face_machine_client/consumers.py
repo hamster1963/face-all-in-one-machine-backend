@@ -8,6 +8,7 @@ from channels.db import database_sync_to_async
 import json
 import time
 from face_machine_client.models import PassInfo, ClientInfo
+from face_irobot_main.models import FaceStore
 
 import string
 import random
@@ -76,7 +77,7 @@ class FaceWebsocket(AsyncWebsocketConsumer):
                 'type': 'init',
                 'message': 'connected',
                 'error_code': 0,
-                'client_id': self.client_id
+                'client_id': self.client_id  # 返还client_id,用于判断是否是本次连接
             }))
 
     async def disconnect(self, close_code):
@@ -87,47 +88,74 @@ class FaceWebsocket(AsyncWebsocketConsumer):
 
     async def receive(self, text_data=None, bytes_data=None):
         text_data_json = json.loads(text_data)
-        print('text_data_json', text_data_json)
         message_type = text_data_json.get('type')
-        print('self.client_id', self.client_id)
+        # 登录进程
         if message_type == "authenticate":
             # 设备认证
             client_user = text_data_json.get('client_user')
             client_key = text_data_json.get('client_key')
             if text_data_json.get('client_id') == self.client_id:
-                a = 'hhhh'
+                results = await database_sync_to_async(auth_client_token)(client_user, client_key)  # 异步database
+                # 登录成功
+                if results[0] == 'ok':
+                    self.company_id = results[2]
+                    await self.send(text_data=json.dumps(
+                        {
+                            # 返还登录状态与设备参数
+                            'message': 'auth_success',
+                            'client_token': results[1],
+                            'company_id': results[2]
+                        }))
+                    # TODO 加入到相同企业通信通道中，用于主动下发参数
+                    await self.channel_layer.group_add(
+                        str(self.company_id),
+                        self.channel_name
+                    )
+                    await self.channel_layer.group_add(
+                        str(client_user),
+                        self.channel_name
+                    )
+                # 登录失败
+                else:
+                    await self.send(text_data=json.dumps(
+                        {
+                            'message': 'auth_fail'
+                        }))
+                    await self.close()
             else:
-                a = 'shit'
-            results = await database_sync_to_async(auth_client_token)(client_user, client_key)
-            if results == 'ok':
                 await self.send(text_data=json.dumps(
                     {
-                        'message': 'okkk' + a
+                        'message': 'client_id_error'
                     }))
-        '''message = text_data_json.get('message')  # todo 获取token
-        if message:
-            self.company_id = message
-            # Send message to room group
-            await self.channel_layer.group_add(
-                self.company_id,
-                self.channel_name
-            )
-            await self.send(
-                text_data=json.dumps(
+                await self.close()
+        # 通行日志
+        elif message_type == "pass_info":
+            pass
+        # 同步人脸数据库
+        elif message_type == "sync_database":
+            if self.company_id:
+                data_sync_type = text_data_json.get('sync_type')
+                # 全同步模式
+                if data_sync_type == "full_sync":
+                    resp_data = await database_sync_to_async(get_face_store)(self.company_id)
+                    print(resp_data)
+                    await self.send(text_data=json.dumps(resp_data))
+                # 检验同步模式
+                elif data_sync_type == "check_sync":
+                    pass
+            else:
+                await self.send(text_data=json.dumps(
                     {
-                        'type': 'chat_message',
-                        'message': message
-                    })
-            )
-        else:
-            await self.send(
-                text_data=json.dumps(
-                    {
-                        'type': 'wrong',
-                        'message': 'wrong_request'
-                    })
-            )
-            await self.close()'''
+                        'message': 'need_auth'
+                    }))
+
+    # Receive message from room group
+    async def get_notification(self, event):
+        message = event['message']
+        # Send message to WebSocket
+        await self.send(text_data=json.dumps({
+            'message': message
+        }))
 
     def create_client_id(self, randomlength=15):
         """
@@ -151,9 +179,9 @@ def auth_client_token(client_user, client_key):
     # print('auth_state', auth_state)
     if auth_state >= 1:
         auth.update(client_token=create_token())
-        return 'ok'
+        return 'ok', auth.get().client_token, auth.get().client_info.company_id
     else:
-        return 'error'
+        return 'error', None
 
 
 def create_token():
@@ -164,3 +192,25 @@ def create_token():
     token = base64.b64encode(token.encode('utf-8')).decode('utf-8')
     print('token', token)
     return token
+
+
+def get_face_store(company_id):
+    """
+    获取人脸数据库
+    """
+    resp_data = {
+        'type': 'full_sync',
+        'face_store': []
+    }
+    full_store = FaceStore.objects.filter(company_id=company_id)
+    for single_face in full_store:
+        single_data = {'name': single_face.name,
+                       'phone': single_face.phone,
+                       'staff_id': single_face.staff_id,
+                       'company_id': single_face.company_id,
+                       'face_code': str(single_face.face_code)}
+        resp_data['face_store'].append(single_data)
+    print(len(resp_data['face_store']))
+    return resp_data
+
+get_face_store(company_id=7)

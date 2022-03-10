@@ -5,7 +5,7 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    url(r'^$', views.index, name='index'),
-    url(r'^(?P<room_name>[^/]+)/$', views.room, name='room'),
-    path('', views.client_register, name='设备注册')
+    path('admin', views.client_register, name='设备注册'),
+    path('push', views.push_to_client, name='信息下发'),
+
 ]

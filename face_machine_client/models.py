@@ -18,7 +18,7 @@ class ClientInfo(models.Model):
     client_user = models.CharField(max_length=15, verbose_name='设备唯一号', unique=True, primary_key=True)
     client_key = models.CharField(max_length=20, verbose_name='设备认证密码')
     client_token = models.CharField(max_length=50, verbose_name='设备token', default='')
-    client_info = models.ForeignKey('admin_manage.Admin', on_delete=models.CASCADE, related_name='client_info',
+    client_info = models.ForeignKey('admin_manage.Company', on_delete=models.CASCADE, related_name='client_info',
                                     verbose_name='设备企业信息')
     # client_version
     # client_create_time
