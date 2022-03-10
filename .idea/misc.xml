@@ -17,12 +17,20 @@
           <option name="fileUrl" value="file://$PROJECT_DIR$/face_machine_client/tests.py" />
         </OpenedFileInfo>
         <OpenedFileInfo>
-          <option name="caretOffset" value="10352" />
+          <option name="caretOffset" value="638" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/face_irobot_main/models.py" />
+        </OpenedFileInfo>
+        <OpenedFileInfo>
+          <option name="caretOffset" value="4249" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/face_irobot_main/views.py" />
+        </OpenedFileInfo>
+        <OpenedFileInfo>
+          <option name="caretOffset" value="5450" />
           <option name="fileUrl" value="file://$PROJECT_DIR$/face_machine_client/consumers.py" />
         </OpenedFileInfo>
         <OpenedFileInfo>
-          <option name="caretOffset" value="134" />
-          <option name="fileUrl" value="file://$PROJECT_DIR$/face_irobot_main/models.py" />
+          <option name="caretOffset" value="5450" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/face_machine_client/consumers.py" />
         </OpenedFileInfo>
       </list>
     </option>

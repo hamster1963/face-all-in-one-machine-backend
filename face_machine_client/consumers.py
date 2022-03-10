@@ -123,23 +123,41 @@ class FaceWebsocket(AsyncWebsocketConsumer):
         elif message_type == "sync_database":
             if self.company_id:
                 data_sync_type = text_data_json.get('sync_type')
+
                 # 全同步模式
                 if data_sync_type == "full_sync":
-                    resp_data = await database_sync_to_async(get_face_store)(data_sync_type, self.company_id)
+                    resp_data = await database_sync_to_async(get_face_store)(client_user=self.client_user,
+                                                                             data_sync_type=data_sync_type,
+                                                                             company_id=self.company_id)
                     await self.send(text_data=json.dumps(resp_data))
+
                 # 检验同步模式,设备发送本地数据库人员列表进行数据量比对
                 elif data_sync_type == "check_sync":
                     check_sync_list = text_data_json.get("check_sync_list")
-                    resp_data = await database_sync_to_async(get_face_store)(data_sync_type,
-                                                                             self.company_id,
+                    resp_data = await database_sync_to_async(get_face_store)(client_user=self.client_user,
+                                                                             data_sync_type=data_sync_type,
+                                                                             company_id=self.company_id,
                                                                              check_sync_list=check_sync_list)
                     await self.send(text_data=json.dumps(resp_data))
+
+                # 确认比对状态
+                elif data_sync_type == "check_finished":
+                    check_finished_list = text_data_json.get("check_finished_list")
+                    resp_data = await database_sync_to_async(get_face_store)(client_user=self.client_user,
+                                                                             data_sync_type=data_sync_type,
+                                                                             company_id=self.company_id,
+                                                                             check_sync_list=check_finished_list)
+                    await self.send(text_data=json.dumps(resp_data))
+
+
+
                 # 指定人员同步
                 elif data_sync_type == "single_sync":
                     staff_id_list = text_data_json.get('staff_id_list')
-                    resp_data = await database_sync_to_async(get_face_store)(data_sync_type,
+                    resp_data = await database_sync_to_async(get_face_store)(data_sync_type=data_sync_type,
                                                                              staff_id_list=staff_id_list)
                     await self.send(text_data=json.dumps(resp_data))
+
 
             else:
                 await self.send(text_data=json.dumps(
@@ -213,7 +231,7 @@ def create_token():
     return token
 
 
-def get_face_store(data_sync_type, company_id=None, staff_id_list=None, check_sync_list=None):
+def get_face_store(client_user, data_sync_type, company_id=None, staff_id_list=None, check_sync_list=None):
     """
     获取人脸数据库
     """
@@ -262,9 +280,34 @@ def get_face_store(data_sync_type, company_id=None, staff_id_list=None, check_sy
         for check_staff in local_staff_list:
             if check_staff not in check_sync_list:
                 update_list.append(check_staff)
+        # 检测数据库改动(人脸更新,人脸删除)
+        for k in FaceStore.objects.filter(company_id=company_id):
+            local_client_list = eval(k.client_sync_list)
+            print('local_client_list', local_client_list)
+            if client_user in local_client_list:
+                pass
+            else:
+                update_list.append(k.staff_id)
         print('update_list', update_list)
         resp_data['update_list'] = update_list
         return resp_data
+    # 确认比对状态
+    elif data_sync_type == "check_finished":
+        try:
+            for single_staff in check_sync_list:
+                local_client_list = FaceStore.objects.filter(staff_id=single_staff).get().client_sync_list
+                new_local_client_list = eval(local_client_list)
+                # print('new_local_client_list', new_local_client_list)
+                new_local_client_list.append(client_user)
+                # print('new_local_client_list_return', new_local_client_list)
+                # 设备号去重
+                new_local_client_list = list(set(new_local_client_list))
+                FaceStore.objects.filter(staff_id=single_staff).update(client_sync_list=str(new_local_client_list))
+        except Exception as e:
+            print(e)
+        else:
+            resp_data['update_state'] = "cool"
+            return resp_data
 
 
 def update_sync_state(sync_type, sync_state, client_user, face_data_len=0, success_sync=0):

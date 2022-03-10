@@ -118,6 +118,7 @@ def face_main(request):
                             Update_face.upload_time = datetime.datetime.now()
                             # 清空下发状态
                             Update_face.sync_state = 0
+                            Update_face.client_sync_list = []  # 清空同步设备列表
                             Update_face.save()
                             return JsonResponse({'msg': '人脸照片更新成功',
                                                  'code': "200",
@@ -131,7 +132,8 @@ def face_main(request):
                                                      phone=req_data.get('phone'),
                                                      face_code=face_code,
                                                      upload_time=datetime.datetime.now(),
-                                                     sync_state=0  # 清空下发状态
+                                                     sync_state=0,  # 清空下发状态
+                                                     client_sync_list=[]  # 清空同步设备列表
                                                      )
                             return JsonResponse({'msg': '人脸照片上传成功',
                                                  'code': "200",
