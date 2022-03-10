@@ -9,20 +9,28 @@
           <option name="fileUrl" value="file://$PROJECT_DIR$/face_machine_client/views.py" />
         </OpenedFileInfo>
         <OpenedFileInfo>
-          <option name="caretOffset" value="4694" />
-          <option name="fileUrl" value="file://$PROJECT_DIR$/face_machine_client/consumers.py" />
+          <option name="caretOffset" value="635" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/face_irobot_main/models.py" />
         </OpenedFileInfo>
         <OpenedFileInfo>
-          <option name="caretOffset" value="4694" />
-          <option name="fileUrl" value="file://$PROJECT_DIR$/face_machine_client/consumers.py" />
-        </OpenedFileInfo>
-        <OpenedFileInfo>
-          <option name="caretOffset" value="409" />
+          <option name="caretOffset" value="941" />
           <option name="fileUrl" value="file://$PROJECT_DIR$/face_machine_client/models.py" />
         </OpenedFileInfo>
         <OpenedFileInfo>
-          <option name="caretOffset" value="595" />
-          <option name="fileUrl" value="file://$PROJECT_DIR$/face_irobot_main/models.py" />
+          <option name="caretOffset" value="1419" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/FACE_BACKEND/settings.py" />
+        </OpenedFileInfo>
+        <OpenedFileInfo>
+          <option name="caretOffset" value="226" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/FACE_BACKEND/asgi.py" />
+        </OpenedFileInfo>
+        <OpenedFileInfo>
+          <option name="caretOffset" value="187" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/FACE_BACKEND/routing.py" />
+        </OpenedFileInfo>
+        <OpenedFileInfo>
+          <option name="caretOffset" value="1916" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/face_machine_client/consumers.py" />
         </OpenedFileInfo>
       </list>
     </option>

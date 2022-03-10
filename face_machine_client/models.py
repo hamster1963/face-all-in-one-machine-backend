@@ -22,3 +22,14 @@ class ClientInfo(models.Model):
                                     verbose_name='设备企业信息')
     # client_version
     # client_create_time
+
+
+class SyncInfo(models.Model):
+    """
+    设备通信日志
+    """
+    client_user = models.ForeignKey('ClientInfo', on_delete=models.CASCADE, related_name='sync_info')
+    sync_type = models.CharField(max_length=50, verbose_name="同步类型")
+    sync_state = models.CharField(max_length=10, verbose_name="同步状态")
+    sync_time = models.DateTimeField(auto_now=True, verbose_name='同步时间')
+

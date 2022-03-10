@@ -7,7 +7,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 import json
 import time
-from face_machine_client.models import PassInfo, ClientInfo
+from face_machine_client.models import PassInfo, ClientInfo, SyncInfo
 from face_irobot_main.models import FaceStore
 
 import string
@@ -56,6 +56,18 @@ class ChatConsumer(AsyncWebsocketConsumer):
         }))
 
 
+def create_client_id(randomlength=15):
+    """
+    生成client_id
+    """
+    random_str = ''
+    base_str = 'ABCDEFGHIGKLMNOPQRSTUVWXYZabcdefghigklmnopqrstuvwxyz0123456789'
+    length = len(base_str) - 1
+    for i in range(randomlength):
+        random_str += base_str[random.randint(0, length)]
+    return random_str
+
+
 class FaceWebsocket(AsyncWebsocketConsumer):
     """
     人脸后台websocket服务
@@ -71,7 +83,7 @@ class FaceWebsocket(AsyncWebsocketConsumer):
         # Join room group
         await self.accept()
         # 生成本次连接的client_id
-        self.client_id = self.create_client_id()
+        self.client_id = create_client_id()
         await self.send(text_data=json.dumps(
             {
                 'type': 'init',
@@ -138,7 +150,6 @@ class FaceWebsocket(AsyncWebsocketConsumer):
                 # 全同步模式
                 if data_sync_type == "full_sync":
                     resp_data = await database_sync_to_async(get_face_store)(self.company_id)
-                    print(resp_data)
                     await self.send(text_data=json.dumps(resp_data))
                 # 检验同步模式
                 elif data_sync_type == "check_sync":
@@ -148,25 +159,20 @@ class FaceWebsocket(AsyncWebsocketConsumer):
                     {
                         'message': 'need_auth'
                     }))
+        # 同步状态
+        elif message_type == "sync_info":
+            sync_state = text_data_json.get('sync_state')[0]
+            print('sync_state', sync_state)
+            if sync_state['type'] == "full_sync":
+                pass
 
-    # Receive message from room group
+    # 向设备下发通知
     async def get_notification(self, event):
         message = event['message']
-        # Send message to WebSocket
+        # 异步下发
         await self.send(text_data=json.dumps({
             'message': message
         }))
-
-    def create_client_id(self, randomlength=15):
-        """
-        生成client_id
-        """
-        random_str = ''
-        base_str = 'ABCDEFGHIGKLMNOPQRSTUVWXYZabcdefghigklmnopqrstuvwxyz0123456789'
-        length = len(base_str) - 1
-        for i in range(randomlength):
-            random_str += base_str[random.randint(0, length)]
-        return random_str
 
 
 def auth_client_token(client_user, client_key):
@@ -213,4 +219,9 @@ def get_face_store(company_id):
     print(len(resp_data['face_store']))
     return resp_data
 
-get_face_store(company_id=7)
+
+def update_sync_state(sync_type, sync_state, client_user):
+    """
+    更新同步状态
+    """
+    pass
