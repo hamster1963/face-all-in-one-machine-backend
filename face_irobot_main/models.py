@@ -11,4 +11,5 @@ class FaceStore(models.Model):
     face_code = models.BinaryField(verbose_name='人脸特征码')
     upload_time = models.DateTimeField(verbose_name='人脸上传日期')
     sync_state = models.IntegerField(default=0, verbose_name='与设备同步状态')
+    client_sync_list = models.CharField(max_length=100, default="[]", verbose_name="设备同步列表")
 

@@ -5,6 +5,11 @@ from FACE_BACKEND.settings import BASE_DIR
 from face_irobot_main.seeta.faceapi import *
 from face_irobot_main.models import FaceStore
 
+"""
+人脸功能模块文件
+"""
+
+
 # 引擎初始化
 func_list = ["FACE_DETECT", "FACE_RECOGNITION", "LANDMARKER5", "FACE_TRACK"]
 model_path = "./face_irobot_main/seeta/model"
@@ -13,10 +18,9 @@ seetaFace = SeetaFace(func_list, device=1, id=0)
 seetaFace.init_engine(model_path)
 print('init_engine', time.time())
 
-time1 = time.time()
-# print(BASE_DIR)
+# 正向人脸识别模型路径
 predictor_path = str(BASE_DIR) + "/face_irobot_main/dlib_models/shape_predictor_68_face_landmarks.dat"
-# print(predictor_path)
+# 构造检测器
 detector = dlib.get_frontal_face_detector()
 predictor = dlib.shape_predictor(predictor_path)
 
@@ -74,11 +78,15 @@ def get_feature(img_file):
     :param img_file:
     :return:feature
     """
-    simage2 = get_seetaImageData_by_numpy(img_file)  # 原图转SeetaImageData
+    # 原图转SeetaImageData
+    simage2 = get_seetaImageData_by_numpy(img_file)
+    # 对图像进行检测
     detect_result2 = seetaFace.Detect(simage2)
+    # 如果检测到人脸
     if detect_result2.size != 0:
         face = detect_result2.data[0].pos
         points = seetaFace.mark5(simage2, face)
+        # 进行特征值提取
         feature = seetaFace.Extract(simage2, points)
     else:
         return None
@@ -89,7 +97,8 @@ def get_feature(img_file):
 def calculate(feature1, feature2):
     """
     计算特征值相似度
-    :param feature1:特征值
+    :param feature1:特征值1
+    :param feature2:特征值2
     :return:distance:距离
     """
     distance = seetaFace.CalculateSimilarity(feature1, feature2)

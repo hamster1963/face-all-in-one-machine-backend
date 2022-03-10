@@ -2,6 +2,10 @@ import time
 
 from seeta.faceapi import *
 
+"""
+此文件为测试服务器是否已经安装部署好人脸依赖库环境，如果成功运行证明模型与人脸模块已经就绪
+"""
+
 # 引擎初始化
 func_list = ["FACE_DETECT", "FACE_RECOGNITION", "LANDMARKER5", "FACE_TRACK"]
 model_path = "./seeta/model"
@@ -20,4 +24,3 @@ feature = seetaFace.get_feature_byte(feature2)
 print(feature)
 print(seetaFace.CalculateSimilarity(feature2, feature2))
 print('end', time.time())
-

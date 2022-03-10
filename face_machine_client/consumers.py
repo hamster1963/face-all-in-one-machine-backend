@@ -13,6 +13,7 @@ from face_irobot_main.models import FaceStore
 import string
 import random
 
+
 def create_client_id(randomlength=15):
     """
     生成client_id
@@ -31,6 +32,7 @@ class FaceWebsocket(AsyncWebsocketConsumer):
     """
 
     def __init__(self, *args, **kwargs):
+        # 初始化参数
         super().__init__(args, kwargs)
         self.client_user = None
         self.client_id = None
@@ -38,7 +40,6 @@ class FaceWebsocket(AsyncWebsocketConsumer):
 
     async def connect(self):
         # 初始化连接
-        # Join room group
         await self.accept()
         # 生成本次连接的client_id
         self.client_id = create_client_id()
@@ -57,6 +58,7 @@ class FaceWebsocket(AsyncWebsocketConsumer):
             }))
 
     async def receive(self, text_data=None, bytes_data=None):
+        # 处理websocket
         text_data_json = json.loads(text_data)
         message_type = text_data_json.get('type')
         # 登录进程
@@ -64,8 +66,10 @@ class FaceWebsocket(AsyncWebsocketConsumer):
             # 设备认证
             client_user = text_data_json.get('client_user')
             client_key = text_data_json.get('client_key')
+            # 校验连接是否有效
             if text_data_json.get('client_id') == self.client_id:
-                results = await database_sync_to_async(auth_client_token)(client_user, client_key)  # 异步database
+                # 异步database
+                results = await database_sync_to_async(auth_client_token)(client_user, client_key)
                 # 登录成功
                 if results[0] == 'ok':
                     self.company_id = results[2]
@@ -77,11 +81,12 @@ class FaceWebsocket(AsyncWebsocketConsumer):
                             'client_token': results[1],
                             'company_id': results[2]
                         }))
-                    #  加入到相同企业通信通道中，用于主动下发参数
+                    # 加入到相同企业通信通道中，用于主动下发参数
                     await self.channel_layer.group_add(
                         str(self.company_id),
                         self.channel_name
                     )
+                    # 加入设备单独通信通道，用于点对点下发参数
                     await self.channel_layer.group_add(
                         str(client_user),
                         self.channel_name
@@ -106,7 +111,7 @@ class FaceWebsocket(AsyncWebsocketConsumer):
                 task_id = text_data_json.get("task_id")
                 update_results = await database_sync_to_async(update_pass_info)(info_detail_list=info_detail,
                                                                                 task_id=task_id,
-                                                                                client_user = self.client_user
+                                                                                client_user=self.client_user
                                                                                 )
                 await self.send(text_data=json.dumps(update_results))
             else:
@@ -145,10 +150,10 @@ class FaceWebsocket(AsyncWebsocketConsumer):
         elif message_type == "sync_info":
             if self.company_id:
                 sync_state = text_data_json.get('sync_state')
-                print('sync_state', sync_state)
                 state = sync_state.get("state")
                 face_data_len = sync_state.get("face_data_len")
                 success_sync = sync_state.get("success_sync")
+                # 判断同步类型
                 if sync_state['type'] == "full_sync":
                     sync_type = "full_sync"
                 elif sync_state['type'] == 'single_sync':
@@ -159,7 +164,7 @@ class FaceWebsocket(AsyncWebsocketConsumer):
                     success_sync = 0
                 else:
                     sync_type = ''
-
+                # 进行数据库同步
                 await database_sync_to_async(update_sync_state)(sync_type=sync_type,
                                                                 sync_state=state,
                                                                 client_user=self.client_user,
@@ -185,11 +190,13 @@ def auth_client_token(client_user, client_key):
     """
     设备认证
     """
+    # 在数据库中检索设备号与认证码
     auth = ClientInfo.objects.filter(client_user=client_user, client_key=client_key)
     # print('auth', auth)
     auth_state = auth.count()
     # print('auth_state', auth_state)
     if auth_state >= 1:
+        # 生成设备唯一token
         auth.update(client_token=create_token())
         return 'ok', auth.get().client_token, auth.get().client_info.company_id
     else:
@@ -216,6 +223,7 @@ def get_face_store(data_sync_type, company_id=None, staff_id_list=None, check_sy
         'type': data_sync_type,
         'face_store': []
     }
+    # 全同步方式
     if data_sync_type == "full_sync":
         full_store = FaceStore.objects.filter(company_id=company_id)
         for single_face in full_store:
@@ -227,6 +235,7 @@ def get_face_store(data_sync_type, company_id=None, staff_id_list=None, check_sy
             resp_data['face_store'].append(single_data)
         print(len(resp_data['face_store']))
         return resp_data
+    # 指定人员同步
     elif data_sync_type == "single_sync":
         for single_staff in staff_id_list:
             single_face = FaceStore.objects.filter(staff_id=single_staff).get()
@@ -239,6 +248,7 @@ def get_face_store(data_sync_type, company_id=None, staff_id_list=None, check_sy
             resp_data['face_store'].append(single_data)
         print(len(resp_data['face_store']))
         return resp_data
+    # 人员列表检查同步
     elif data_sync_type == "check_sync":
         local_staff_list = []
         for x in FaceStore.objects.filter(company_id=company_id):
@@ -262,12 +272,14 @@ def update_sync_state(sync_type, sync_state, client_user, face_data_len=0, succe
     更新同步状态
     """
     try:
+        # 全同步
         if sync_type == "full_sync":
             SyncInfo.objects.create(sync_type=sync_type,
                                     sync_state=sync_state,
                                     client_user_id=client_user,
                                     face_data_len=face_data_len,
                                     success_sync=success_sync)
+        # 人员列表检查同步
         elif sync_type == "check_sync":
             SyncInfo.objects.create(sync_type=sync_type,
                                     sync_state=sync_state,
@@ -288,6 +300,7 @@ def update_pass_info(info_detail_list, task_id, client_user):
         'pass_update_state': ''
     }
     try:
+        # 分条插入数据库中
         for single_info in info_detail_list:
             name = single_info.get('name')
             staff_id = single_info.get('staff_id')

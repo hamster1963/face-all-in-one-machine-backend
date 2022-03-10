@@ -25,7 +25,10 @@ def method_verify(req_method='POST'):
             if method == req_method:
                 return func(request, *args, **kwargs)
             else:
-                return JsonResponse({'msg': '请求方法错误'})
+                return JsonResponse({'msg': '请求方法错误',
+                                     'code': "200",
+                                     'error': "001",
+                                     })
 
         return wrapper
 
@@ -45,7 +48,10 @@ def verify_token(func):
             token = request.POST['token']
         except Exception as e:
             print('token_error', str(e))
-            return JsonResponse({'msg': '未获取到token'})
+            return JsonResponse({'msg': '未获取到token',
+                                 'code': "200",
+                                 'error_code': "999"
+                                 })
         else:
             try:
                 # 在数据库中查询token
@@ -55,14 +61,20 @@ def verify_token(func):
                 return JsonResponse({'msg': str(e)})
             # 如果未查询到token，返还
             if token_num == 0:
-                return JsonResponse({'msg': 'token错误'}, json_dumps_params={'ensure_ascii': False})
+                return JsonResponse({'msg': 'token错误',
+                                     'code': "200",
+                                     'error_code': "998"
+                                     }, json_dumps_params={'ensure_ascii': False})
             # 查询到token，判断是否过期
             else:
                 re_token = base64.b64decode(token).decode('utf-8').split('num=')
                 time_check = re_token[0].split('time=')[1]
                 time_check = (int(time.time()) - int(time_check)) / 60
                 if time_check > 30:  # 如果token过期，返还
-                    return JsonResponse({'msg': 'token过期'})
+                    return JsonResponse({'msg': 'token过期',
+                                         'code': "200",
+                                         'error_code': "997"
+                                         })
                 else:
                     return func(request, *args, **kwargs)
 
@@ -137,28 +149,45 @@ def login(request):
     username = req_data.get('username')
     password = req_data.get('password')
     if not username or not password:
-        return JsonResponse({'msg': '用户名或密码不能为空'}, json_dumps_params={'ensure_ascii': False})
+        return JsonResponse({'msg': '用户名或密码不能为空',
+                             'code': "200",
+                             'error_code': "888"
+                             }, json_dumps_params={'ensure_ascii': False})
     code = req_data.get('code')  # 获取验证码
 
     if code and request.session.get('code') and int(code) == int(request.session.get('code')):  # 验证二维码
         pass
     else:
-        return JsonResponse({'msg': '验证码错误'}, json_dumps_params={'ensure_ascii': False})
+        return JsonResponse({'msg': '验证码错误',
+                             'code': "200",
+                             'error_code': "887"
+                             }, json_dumps_params={'ensure_ascii': False})
     try:  # 登录
         login_check = Admin.objects.filter(username=username, password=password)
         login_state = login_check.count()
     except Exception as e:
         return JsonResponse({'msg': str(e)}, json_dumps_params={'ensure_ascii': False})
     if login_state == 0:
-        return JsonResponse({'msg': '用户名或密码不存在'}, json_dumps_params={'ensure_ascii': False})
+        return JsonResponse({'msg': '用户名或密码不存在',
+                             'code': "200",
+                             'error_code': "886"
+                             }, json_dumps_params={'ensure_ascii': False})
     else:  # 检验账户状态
         user_state = login_check.get().open_state
         if user_state == 1:
             token = create_token(username, login_check.get())
             request.session['code'] = 0
-            return JsonResponse({'msg': '登录成功', 'token': token, 'company_id': login_check.get().admin_info.company_id})
+            return JsonResponse({'msg': '登录成功',
+                                 'token': token,
+                                 'company_id': login_check.get().admin_info.company_id,
+                                 'code': "200",
+                                 'error_code': "0"
+                                 })
         else:
-            return JsonResponse({'msg': '账号被停用'}, json_dumps_params={'ensure_ascii': False})
+            return JsonResponse({'msg': '账号被停用',
+                                 'code': "200",
+                                 'error_code': "880"
+                                 }, json_dumps_params={'ensure_ascii': False})
 
 
 @method_verify()
@@ -181,8 +210,10 @@ def register(request):
         username = req_data.get('username')
         password = req_data.get('password')
         company_id = req_data.get('company_id')
+        # 检查必填项是否已填
         if username and password and company_id:
             request_check = Admin.objects.filter(username=username).count()
+            # 检查用户名是否已经注册
             if request_check == 0:
                 try:
                     admin_info = Company.objects.filter(company_id=company_id).get()
@@ -192,13 +223,25 @@ def register(request):
                     return JsonResponse({'msg': str(e)})
                 return JsonResponse({'msg': '注册成功,请记录用户名与密码',
                                      'username': username,
-                                     'password': password})
+                                     'password': password,
+                                     'code': "200",
+                                     'error_code': "0"
+                                     })
             else:
-                return JsonResponse({'msg': '用户名已经被注册'})
+                return JsonResponse({'msg': '用户名已经被注册',
+                                     'code': "200",
+                                     'error_code': "885"
+                                     })
         else:
-            return JsonResponse({'msg': '有必填项未填'})
+            return JsonResponse({'msg': '有必填项未填',
+                                 'code': "200",
+                                 'error_code': "884"
+                                 })
     else:
-        return JsonResponse({'msg': '注册参数出错'})
+        return JsonResponse({'msg': '注册参数出错',
+                             'code': "200",
+                             'error_code': "883"
+                             })
 
 
 @method_verify()
