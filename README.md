@@ -7,3 +7,4 @@
 https://console-docs.apipost.cn/preview/4cbd02d3547ecc9b/3748a3bc16dee59e
 ## 开发文档
 - [开发文档](开发文档.pdf)
+- [部署文档](部署文档.pdf)
