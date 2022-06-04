@@ -114,7 +114,7 @@ def push_to_client(request):
     # 推送类型
     push_type = req_data.get('push_type')
     push_message = request.POST.get('push_message')
-    # 按照企业推送全推送
+    # 按照企业id进行设备全推送
     if push_type == "company":
         company_id = request.POST.get('company_id')
         try:
